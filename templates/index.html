@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>TaskFlow</h1>
+
+<form action="/add" method="POST">
+
+    <input
+        type="text"
+        name="title"
+        placeholder="Enter Task"
+        required>
+
+    <button>Add Task</button>
+
+</form>
+
+<hr>
+
+{% for task in tasks %}
+
+<div style="margin:10px;">
+
+    {% if task["status"]==0 %}
+
+        ⬜ {{ task["title"] }}
+
+        <a href="/complete/{{task['id']}}">
+            Complete
+        </a>
+
+    {% else %}
+
+        ✅ <s>{{ task["title"] }}</s>
+
+    {% endif %}
+
+    <a href="/delete/{{task['id']}}">
+        Delete
+    </a>
+
+</div>
+
+{% endfor %}
+{% endblock %}
