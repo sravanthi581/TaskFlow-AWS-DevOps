@@ -1,5 +1,32 @@
-venv/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Database
 taskflow.db
+
+# Virtual Environment
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment Variables
 .env
+.env.*
+
+# Docker
+*.pid
+
+# Python cache
+.pytest_cache/

@@ -1,9 +1,7 @@
 #!/bin/bash
 
-sudo dnf update -y
+cd /home/ec2-user/TaskFlow-AWS-DevOps
 
-sudo dnf install python3 -y
+python3 -m pip install --upgrade pip
 
-sudo dnf install python3-pip -y
-
-pip3 install Flask
+pip3 install -r requirements.txt

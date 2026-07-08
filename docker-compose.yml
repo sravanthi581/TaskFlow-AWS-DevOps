@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+
+  taskflow:
+
+    build: .
+
+    container_name: taskflow
+
+    ports:
+      - "5000:5000"
+
+    restart: always

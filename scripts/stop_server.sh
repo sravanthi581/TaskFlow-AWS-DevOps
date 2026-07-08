@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pkill -f app.py || true
+pkill gunicorn || true
