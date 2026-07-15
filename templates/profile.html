@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+
+{% block title %}
+Profile | TaskFlow
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+<div class="row">
+
+<!-- LEFT -->
+
+<div class="col-lg-4">
+
+<div class="profile-card">
+
+<div class="profile-avatar">
+
+{{ session.username[0]|upper }}
+
+</div>
+
+<h2 class="profile-name">
+
+{{ session.username }}
+
+</h2>
+
+<p class="profile-email">
+
+{{ user.email }}
+
+</p>
+
+<hr>
+
+<div class="profile-info">
+
+<ul class="list-unstyled">
+
+<li>
+
+<span>
+
+Member Since
+
+</span>
+
+<strong>
+
+2026
+
+</strong>
+
+</li>
+
+<li>
+
+<span>
+
+Role
+
+</span>
+
+<strong>
+
+TaskFlow User
+
+</strong>
+
+</li>
+
+<li>
+
+<span>
+
+Status
+
+</span>
+
+<span class="badge bg-success">
+
+Active
+
+</span>
+
+</li>
+
+</ul>
+
+</div>
+
+<div class="mt-4 d-grid">
+
+<a
+
+href="/logout"
+
+class="btn btn-danger">
+
+<i class="bi bi-box-arrow-right"></i>
+
+Logout
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div class="col-lg-8">
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+<h3 class="fw-bold">
+
+Account Overview
+
+</h3>
+
+<p class="text-muted">
+
+Your productivity summary.
+
+</p>
+
+<div class="row mt-4">
+
+<div class="col-md-3">
+
+<div class="stats-card stats-primary">
+
+<i class="bi bi-list-task"></i>
+
+<h6>Total</h6>
+
+<h2>{{stats.total}}</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="stats-card stats-success">
+
+<i class="bi bi-check-circle-fill"></i>
+
+<h6>Completed</h6>
+
+<h2>{{stats.completed}}</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="stats-card stats-warning">
+
+<i class="bi bi-clock-fill"></i>
+
+<h6>Pending</h6>
+
+<h2>{{stats.pending}}</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="stats-card stats-danger">
+
+<i class="bi bi-exclamation-circle-fill"></i>
+
+<h6>High</h6>
+
+<h2>{{stats.high}}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- Progress -->
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+<h4 class="fw-bold">
+
+Completion Progress
+
+</h4>
+
+{% if stats.total>0 %}
+
+{% set percent=(stats.completed*100/stats.total)|round(0) %}
+
+<div class="progress mt-4">
+
+<div
+
+class="progress-bar"
+
+style="width:{{percent}}%;">
+
+{{percent}}%
+
+</div>
+
+</div>
+
+{% else %}
+
+<div class="progress mt-4">
+
+<div
+
+class="progress-bar"
+
+style="width:0%;">
+
+0%
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<!-- Chart -->
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+<h4 class="fw-bold mb-4">
+
+Task Distribution
+
+</h4>
+
+<canvas id="profileChart"></canvas>
+
+</div>
+
+</div>
+
+<!-- Timeline -->
+
+<div class="card">
+
+<div class="card-body">
+
+<h4 class="fw-bold mb-4">
+
+Activity Timeline
+
+</h4>
+
+<div class="timeline">
+
+<div class="timeline-item">
+
+<h6>
+
+Logged into TaskFlow
+
+</h6>
+
+<span>
+
+Today
+
+</span>
+
+</div>
+
+<div class="timeline-item">
+
+<h6>
+
+Created new tasks
+
+</h6>
+
+<span>
+
+This Week
+
+</span>
+
+</div>
+
+<div class="timeline-item">
+
+<h6>
+
+Completed project tasks
+
+</h6>
+
+<span>
+
+Recent Activity
+
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const profileChart=document.getElementById("profileChart");
+
+if(profileChart){
+
+new Chart(profileChart,{
+
+type:'pie',
+
+data:{
+
+labels:[
+
+'Completed',
+
+'Pending',
+
+'High Priority'
+
+],
+
+datasets:[{
+
+data:[
+
+{{stats.completed}},
+
+{{stats.pending}},
+
+{{stats.high}}
+
+],
+
+backgroundColor:[
+
+'#22C55E',
+
+'#2563EB',
+
+'#EF4444'
+
+]
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+
+legend:{
+
+position:'bottom'
+
+}
+
+}
+
+}
+
+});
+
+}
+
+</script>
+
+{% endblock %}

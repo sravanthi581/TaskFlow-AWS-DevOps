@@ -1,7 +1,12 @@
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE = "taskflow.db"
 
+
+# =====================================================
+# DATABASE CONNECTION
+# =====================================================
 
 def get_connection():
     conn = sqlite3.connect(DATABASE)
@@ -9,11 +14,36 @@ def get_connection():
     return conn
 
 
-def initialize_database():
+# =====================================================
+# INITIALIZE DATABASE
+# =====================================================
+
+def init_db():
 
     conn = get_connection()
 
-    conn.execute("""
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    CREATE TABLE IF NOT EXISTS users(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        username TEXT NOT NULL,
+
+        email TEXT UNIQUE NOT NULL,
+
+        password TEXT NOT NULL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    )
+
+    """)
+
+    cur.execute("""
+
     CREATE TABLE IF NOT EXISTS tasks(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,15 +54,18 @@ def initialize_database():
 
         priority TEXT DEFAULT 'Medium',
 
-        category TEXT DEFAULT 'Personal',
+        status TEXT DEFAULT 'Pending',
 
         due_date TEXT,
 
-        status INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        user_id INTEGER NOT NULL,
+
+        FOREIGN KEY(user_id) REFERENCES users(id)
 
     )
+
     """)
 
     conn.commit()
@@ -40,124 +73,392 @@ def initialize_database():
     conn.close()
 
 
-def get_tasks(search=""):
+# =====================================================
+# USER FUNCTIONS
+# =====================================================
+
+def register_user(
+
+        username,
+
+        email,
+
+        password
+
+):
 
     conn = get_connection()
 
-    if search:
+    cur = conn.cursor()
 
-        tasks = conn.execute(
-            """
-            SELECT *
+    hashed = generate_password_hash(password)
 
-            FROM tasks
+    try:
 
-            WHERE
+        cur.execute("""
 
-            title LIKE ?
+        INSERT INTO users(
 
-            OR description LIKE ?
+            username,
 
-            OR category LIKE ?
+            email,
 
-            ORDER BY
+            password
 
-            CASE priority
+        )
 
-            WHEN 'High' THEN 1
+        VALUES(
 
-            WHEN 'Medium' THEN 2
+            ?,
 
-            ELSE 3
+            ?,
 
-            END,
+            ?
 
-            id DESC
-            """,
+        )
 
-            (
-                f"%{search}%",
-                f"%{search}%",
-                f"%{search}%"
-            )
+        """,
 
-        ).fetchall()
+        (
 
-    else:
+            username,
 
-        tasks = conn.execute(
-            """
-            SELECT *
+            email,
 
-            FROM tasks
+            hashed
 
-            ORDER BY
+        ))
 
-            CASE priority
+        conn.commit()
 
-            WHEN 'High' THEN 1
+        return True
 
-            WHEN 'Medium' THEN 2
+    except sqlite3.IntegrityError:
 
-            ELSE 3
+        return False
 
-            END,
+    finally:
 
-            id DESC
-            """
-        ).fetchall()
+        conn.close()
+
+
+def authenticate_user(
+
+        email,
+
+        password
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+
+        "SELECT * FROM users WHERE email=?",
+
+        (email,)
+
+    )
+
+    user = cur.fetchone()
+
+    conn.close()
+
+    if user:
+
+        if check_password_hash(
+
+            user["password"],
+
+            password
+
+        ):
+
+            return dict(user)
+
+    return None
+
+
+def get_user(user_id):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+
+        "SELECT * FROM users WHERE id=?",
+
+        (user_id,)
+
+    )
+
+    user = cur.fetchone()
+
+    conn.close()
+
+    if user:
+
+        return dict(user)
+
+    return None
+
+
+def update_password(
+
+        user_id,
+
+        new_password
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    hashed = generate_password_hash(
+
+        new_password
+
+    )
+
+    cur.execute("""
+
+    UPDATE users
+
+    SET password=?
+
+    WHERE id=?
+
+    """,
+
+    (
+
+        hashed,
+
+        user_id
+
+    ))
+
+    conn.commit()
+
+    conn.close()
+
+
+# =====================================================
+# TASK FUNCTIONS
+# =====================================================
+
+def add_task(
+
+        title,
+
+        description,
+
+        priority,
+
+        status,
+
+        due_date,
+
+        user_id
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO tasks(
+
+        title,
+
+        description,
+
+        priority,
+
+        status,
+
+        due_date,
+
+        user_id
+
+    )
+
+    VALUES(
+
+        ?,
+
+        ?,
+
+        ?,
+
+        ?,
+
+        ?,
+
+        ?
+
+    )
+
+    """,
+
+    (
+
+        title,
+
+        description,
+
+        priority,
+
+        status,
+
+        due_date,
+
+        user_id
+
+    ))
+
+    conn.commit()
+
+    conn.close()
+
+
+def get_tasks(user_id):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    SELECT *
+
+    FROM tasks
+
+    WHERE user_id=?
+
+    ORDER BY created_at DESC
+
+    """,
+
+    (user_id,))
+
+    tasks = cur.fetchall()
 
     conn.close()
 
     return tasks
 
 
-def add_task(
+def get_task(task_id):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+
+        "SELECT * FROM tasks WHERE id=?",
+
+        (task_id,)
+
+    )
+
+    task = cur.fetchone()
+
+    conn.close()
+
+    return task
+
+# =====================================================
+# UPDATE TASK
+# =====================================================
+
+def update_task(
+
+        task_id,
+
         title,
-        description="",
-        priority="Medium",
-        category="Personal",
-        due_date=""
+
+        description,
+
+        priority,
+
+        status,
+
+        due_date
+
 ):
 
     conn = get_connection()
 
-    conn.execute(
-        """
-        INSERT INTO tasks
-        (
-            title,
-            description,
-            priority,
-            category,
-            due_date
-        )
+    cur = conn.cursor()
 
-        VALUES(?,?,?,?,?)
-        """,
+    cur.execute("""
 
-        (
-            title,
-            description,
-            priority,
-            category,
-            due_date
-        )
+    UPDATE tasks
 
-    )
+    SET
+
+        title=?,
+
+        description=?,
+
+        priority=?,
+
+        status=?,
+
+        due_date=?
+
+    WHERE id=?
+
+    """,
+
+    (
+
+        title,
+
+        description,
+
+        priority,
+
+        status,
+
+        due_date,
+
+        task_id
+
+    ))
 
     conn.commit()
 
     conn.close()
 
+
+# =====================================================
+# DELETE TASK
+# =====================================================
 
 def delete_task(task_id):
 
     conn = get_connection()
 
-    conn.execute(
+    cur = conn.cursor()
 
-        "DELETE FROM tasks WHERE id=?",
+    cur.execute(
+
+        """
+
+        DELETE FROM tasks
+
+        WHERE id=?
+
+        """,
 
         (task_id,)
 
@@ -167,14 +468,28 @@ def delete_task(task_id):
 
     conn.close()
 
+
+# =====================================================
+# COMPLETE TASK
+# =====================================================
 
 def complete_task(task_id):
 
     conn = get_connection()
 
-    conn.execute(
+    cur = conn.cursor()
 
-        "UPDATE tasks SET status=1 WHERE id=?",
+    cur.execute(
+
+        """
+
+        UPDATE tasks
+
+        SET status='Completed'
+
+        WHERE id=?
+
+        """,
 
         (task_id,)
 
@@ -185,23 +500,233 @@ def complete_task(task_id):
     conn.close()
 
 
-def task_statistics():
+# =====================================================
+# SEARCH TASKS
+# =====================================================
+
+def search_tasks(
+
+        user_id,
+
+        keyword
+
+):
 
     conn = get_connection()
 
-    total = conn.execute(
+    cur = conn.cursor()
 
-        "SELECT COUNT(*) FROM tasks"
+    keyword = f"%{keyword}%"
 
-    ).fetchone()[0]
+    cur.execute("""
 
-    completed = conn.execute(
+    SELECT *
 
-        "SELECT COUNT(*) FROM tasks WHERE status=1"
+    FROM tasks
 
-    ).fetchone()[0]
+    WHERE
 
-    pending = total - completed
+        user_id=?
+
+        AND
+
+        (
+
+            title LIKE ?
+
+            OR
+
+            description LIKE ?
+
+        )
+
+    ORDER BY created_at DESC
+
+    """,
+
+    (
+
+        user_id,
+
+        keyword,
+
+        keyword
+
+    ))
+
+    tasks = cur.fetchall()
+
+    conn.close()
+
+    return tasks
+
+
+# =====================================================
+# FILTER TASKS
+# =====================================================
+
+def get_tasks_by_status(
+
+        user_id,
+
+        status
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    if status.lower() == "all":
+
+        cur.execute("""
+
+        SELECT *
+
+        FROM tasks
+
+        WHERE user_id=?
+
+        ORDER BY created_at DESC
+
+        """,
+
+        (user_id,))
+
+    else:
+
+        cur.execute("""
+
+        SELECT *
+
+        FROM tasks
+
+        WHERE
+
+            user_id=?
+
+            AND
+
+            status=?
+
+        ORDER BY created_at DESC
+
+        """,
+
+        (
+
+            user_id,
+
+            status
+
+        ))
+
+    tasks = cur.fetchall()
+
+    conn.close()
+
+    return tasks
+
+
+# =====================================================
+# DASHBOARD STATISTICS
+# =====================================================
+
+def get_statistics(user_id):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+
+        """
+
+        SELECT COUNT(*)
+
+        FROM tasks
+
+        WHERE user_id=?
+
+        """,
+
+        (user_id,)
+
+    )
+
+    total = cur.fetchone()[0]
+
+    cur.execute(
+
+        """
+
+        SELECT COUNT(*)
+
+        FROM tasks
+
+        WHERE
+
+            status='Completed'
+
+            AND
+
+            user_id=?
+
+        """,
+
+        (user_id,)
+
+    )
+
+    completed = cur.fetchone()[0]
+
+    cur.execute(
+
+        """
+
+        SELECT COUNT(*)
+
+        FROM tasks
+
+        WHERE
+
+            status='Pending'
+
+            AND
+
+            user_id=?
+
+        """,
+
+        (user_id,)
+
+    )
+
+    pending = cur.fetchone()[0]
+
+    cur.execute(
+
+        """
+
+        SELECT COUNT(*)
+
+        FROM tasks
+
+        WHERE
+
+            priority='High'
+
+            AND
+
+            user_id=?
+
+        """,
+
+        (user_id,)
+
+    )
+
+    high = cur.fetchone()[0]
 
     conn.close()
 
@@ -211,61 +736,58 @@ def task_statistics():
 
         "completed": completed,
 
-        "pending": pending
+        "pending": pending,
+
+        "high": high
 
     }
 
-def update_task(task_id, title, description, priority, category, due_date):
+
+# =====================================================
+# DELETE USER
+# =====================================================
+
+def delete_user(user_id):
 
     conn = get_connection()
 
-    conn.execute(
+    cur = conn.cursor()
+
+    cur.execute(
+
         """
-        UPDATE tasks
-        SET
-            title=?,
-            description=?,
-            priority=?,
-            category=?,
-            due_date=?
-        WHERE id=?
+
+        DELETE FROM tasks
+
+        WHERE user_id=?
+
         """,
-        (
-            title,
-            description,
-            priority,
-            category,
-            due_date,
-            task_id
-        )
+
+        (user_id,)
+
+    )
+
+    cur.execute(
+
+        """
+
+        DELETE FROM users
+
+        WHERE id=?
+
+        """,
+
+        (user_id,)
+
     )
 
     conn.commit()
-    conn.close()
-    
-
-def get_tasks_by_status(status):
-
-    conn = get_connection()
-
-    if status == "completed":
-
-        tasks = conn.execute(
-            "SELECT * FROM tasks WHERE status=1 ORDER BY id DESC"
-        ).fetchall()
-
-    elif status == "pending":
-
-        tasks = conn.execute(
-            "SELECT * FROM tasks WHERE status=0 ORDER BY id DESC"
-        ).fetchall()
-
-    else:
-
-        tasks = conn.execute(
-            "SELECT * FROM tasks ORDER BY id DESC"
-        ).fetchall()
 
     conn.close()
 
-    return tasks
+
+# =====================================================
+# INITIALIZE DATABASE
+# =====================================================
+
+init_db()

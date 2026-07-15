@@ -1,132 +1,340 @@
 {% extends "base.html" %}
 
+{% block title %}
+Dashboard | TaskFlow
+{% endblock %}
+
 {% block content %}
 
-<!-- ================= Dashboard ================= -->
+<div class="container-fluid">
 
-<div class="row g-4 mb-4">
+<!-- ==========================
+WELCOME
+========================== -->
 
-    <div class="col-lg-3 col-md-6">
+<div class="card gradient-bg text-white mb-4">
 
-        <div class="card dashboard-card bg-primary text-white">
+<div class="card-body p-5">
 
-            <div class="card-body">
+<div class="row align-items-center">
 
-                <div class="d-flex justify-content-between">
+<div class="col-lg-8">
 
-                    <div>
+<h1 class="display-5 fw-bold">
 
-                        <h6>Total Tasks</h6>
+Welcome back,
 
-                        <h2>{{ total }}</h2>
+{{ session.username }}
 
-                    </div>
+👋
 
-                    <i class="bi bi-list-check display-5"></i>
+</h1>
 
-                </div>
+<p class="lead mt-3">
 
-            </div>
+Manage your projects efficiently using TaskFlow.
 
-        </div>
+Track tasks, monitor progress, and stay productive.
 
-    </div>
+</p>
 
-    <div class="col-lg-3 col-md-6">
+<div class="mt-4">
 
-        <div class="card dashboard-card bg-success text-white">
+<a href="#addTask"
 
-            <div class="card-body">
+class="btn btn-light btn-lg me-3">
 
-                <div class="d-flex justify-content-between">
+<i class="bi bi-plus-circle-fill"></i>
 
-                    <div>
+New Task
 
-                        <h6>Completed</h6>
+</a>
 
-                        <h2>{{ completed }}</h2>
+<a href="/profile"
 
-                    </div>
+class="btn btn-outline-light btn-lg">
 
-                    <i class="bi bi-check-circle-fill display-5"></i>
+Profile
 
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="card dashboard-card bg-warning text-white">
-
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between">
-
-                    <div>
-
-                        <h6>Pending</h6>
-
-                        <h2>{{ pending }}</h2>
-
-                    </div>
-
-                    <i class="bi bi-clock-fill display-5 text-white"></i>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="card dashboard-card today-card">
-
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between">
-
-                    <div>
-
-                        <h6>Today</h6>
-
-                        <small>{{ today }}</small>
-
-                    </div>
-
-                    <i class="bi bi-calendar-event-fill display-5"></i>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
+</a>
 
 </div>
 
-<!-- ================= Create Task ================= -->
+</div>
 
-<div class="card shadow border-0 mb-4">
+<div class="col-lg-4 text-center">
+
+<i class="bi bi-kanban-fill"
+
+style="font-size:170px;opacity:.25;">
+
+</i>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ==========================
+STATISTICS
+========================== -->
+
+<div class="row g-4 mb-4">
+
+<div class="col-lg-3">
+
+<div class="stats-card stats-primary">
+
+<i class="bi bi-list-task"></i>
+
+<h6>Total Tasks</h6>
+
+<h2>{{ stats.total }}</h2>
+
+<p class="text-muted">
+
+All Tasks
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="stats-card stats-success">
+
+<i class="bi bi-check-circle-fill"></i>
+
+<h6>Completed</h6>
+
+<h2>{{ stats.completed }}</h2>
+
+<p class="text-muted">
+
+Finished
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="stats-card stats-warning">
+
+<i class="bi bi-clock-history"></i>
+
+<h6>Pending</h6>
+
+<h2>{{ stats.pending }}</h2>
+
+<p class="text-muted">
+
+Need Attention
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="stats-card stats-danger">
+
+<i class="bi bi-exclamation-triangle-fill"></i>
+
+<h6>High Priority</h6>
+
+<h2>{{ stats.high }}</h2>
+
+<p class="text-muted">
+
+Urgent Tasks
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ==========================
+PROGRESS
+========================== -->
+
+<div class="card mb-4">
 
 <div class="card-body">
 
-<h3 class="mb-4">
+<h4 class="fw-bold">
+
+Overall Progress
+
+</h4>
+
+{% if stats.total > 0 %}
+
+{% set progress=(stats.completed*100/stats.total)|round(0) %}
+
+<div class="progress mt-4">
+
+<div
+
+class="progress-bar"
+
+style="width:{{progress}}%;">
+
+{{progress}}%
+
+</div>
+
+</div>
+
+{% else %}
+
+<div class="progress mt-4">
+
+<div
+
+class="progress-bar"
+
+style="width:0%;">
+
+0%
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<!-- ==========================
+SEARCH
+========================== -->
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+<form method="GET" action="/dashboard">
+
+<div class="row">
+
+<div class="col-lg-8">
+
+<div class="search-box">
+
+<i class="bi bi-search"></i>
+
+<input
+
+type="text"
+
+name="search"
+
+class="form-control"
+
+placeholder="Search tasks..."
+
+value="{{search}}">
+
+</div>
+
+</div>
+
+<div class="col-lg-2">
+
+<select
+
+name="status"
+
+class="form-select">
+
+<option value="all">
+
+All
+
+</option>
+
+<option value="Pending">
+
+Pending
+
+</option>
+
+<option value="Completed">
+
+Completed
+
+</option>
+
+</select>
+
+</div>
+
+<div class="col-lg-2">
+
+<button
+
+class="btn btn-primary w-100">
+
+<i class="bi bi-search"></i>
+
+Search
+
+</button>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+<!-- ==========================
+ADD TASK
+========================== -->
+
+<div
+
+class="card mb-5"
+
+id="addTask">
+
+<div class="card-header">
+
+<h4>
 
 <i class="bi bi-plus-circle-fill"></i>
 
 Create New Task
 
-</h3>
+</h4>
 
-<form action="/add" method="POST">
+</div>
+
+<div class="card-body">
+
+<form
+
+method="POST"
+
+action="/add">
 
 <div class="row">
 
@@ -139,66 +347,82 @@ Task Title
 </label>
 
 <input
+
 type="text"
-class="form-control"
+
 name="title"
-placeholder="Task title"
+
+class="form-control"
+
+placeholder="Enter Task"
+
 required>
 
 </div>
 
 <div class="col-md-6 mb-3">
 
-<label class="form-label">
 
-Due Date
-
-</label>
 
 <input
-type="date"
+
+type="text"
+
+name="category"
+
 class="form-control"
-name="due_date">
+
+placeholder="Development">
 
 </div>
 
-</div>
+<div class="col-md-12 mb-3">
 
-<div class="mb-3">
-
-<label class="form-label">
+<label>
 
 Description
 
 </label>
 
 <textarea
+
 class="form-control"
-rows="4"
+
 name="description"
-placeholder="Description"></textarea>
+
+rows="4"
+
+placeholder="Describe your task..."></textarea>
 
 </div>
 
-<div class="row">
-
 <div class="col-md-4">
 
-<label class="form-label">
+<label>
 
 Priority
 
 </label>
 
 <select
-class="form-select"
-name="priority">
+
+name="priority"
+
+class="form-select">
 
 <option>High</option>
 
-<option selected>Medium</option>
+<option selected>
 
-<option>Low</option>
+Medium
+
+</option>
+
+<option>
+
+Low
+
+</option>
 
 </select>
 
@@ -206,35 +430,31 @@ name="priority">
 
 <div class="col-md-4">
 
-<label class="form-label">
+<label>
 
-Category
+Due Date
 
 </label>
 
-<select
-class="form-select"
-name="category">
+<input
 
-<option>Study</option>
+type="date"
 
-<option>Internship</option>
+name="due_date"
 
-<option>Work</option>
-
-<option>Personal</option>
-
-</select>
+class="form-control">
 
 </div>
 
 <div class="col-md-4 d-flex align-items-end">
 
-<button class="btn btn-primary w-100">
+<button
 
-<i class="bi bi-plus-circle"></i>
+class="btn btn-primary w-100 btn-lg">
 
-Add Task
+<i class="bi bi-plus-circle-fill"></i>
+
+Create Task
 
 </button>
 
@@ -247,105 +467,33 @@ Add Task
 </div>
 
 </div>
-
-<!-- ================= Search ================= -->
-
-<div class="card shadow-sm border-0 mb-4">
-
-<div class="card-body">
-
-<form method="GET">
-
-<div class="row g-3">
-
-<div class="col-lg-7">
-
-<div class="input-group">
-
-<span class="input-group-text">
-
-<i class="bi bi-search"></i>
-
-</span>
-
-<input
-type="text"
-class="form-control"
-name="search"
-placeholder="Search tasks..."
-value="{{ search }}">
-
-</div>
-
-</div>
-
-<div class="col-lg-5">
-
-<div class="d-flex gap-2 justify-content-end flex-wrap">
-
-<button class="btn btn-primary">
-
-Search
-
-</button>
-
-<a href="/?status=all" class="btn btn-outline-primary">
-
-All
-
-</a>
-
-<a href="/?status=pending" class="btn btn-outline-warning">
-
-Pending
-
-</a>
-
-<a href="/?status=completed" class="btn btn-outline-success">
-
-Completed
-
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-
-<!-- ================= Tasks ================= -->
-
-{% if tasks %}
+<!-- ==========================
+TASK LIST
+========================== -->
 
 <div class="row">
+
+{% if tasks %}
 
 {% for task in tasks %}
 
 <div class="col-lg-6 mb-4">
 
-<div class="card task-card h-100 shadow-sm border-0">
+<div class="task-card">
 
-<div class="card-body">
-
-<div class="d-flex justify-content-between">
+<div class="d-flex justify-content-between align-items-start">
 
 <div>
 
-<h4 {% if task["status"] %}class="completed"{% endif %}>
+<h4 class="task-title {% if task.status=='Completed' %}completed{% endif %}">
 
-{{ task["title"] }}
+{{ task.title }}
 
 </h4>
 
-<p class="text-muted">
+<p class="task-desc">
 
-{{ task["description"] }}
+{{ task.description }}
 
 </p>
 
@@ -353,104 +501,137 @@ Completed
 
 <div>
 
-{% if task["priority"]=="High" %}
+{% if task.priority=="High" %}
 
-<span class="badge bg-danger">High</span>
+<span class="badge priority-high">
 
-{% elif task["priority"]=="Medium" %}
+High
 
-<span class="badge bg-warning text-dark">Medium</span>
+</span>
+
+{% elif task.priority=="Medium" %}
+
+<span class="badge priority-medium">
+
+Medium
+
+</span>
 
 {% else %}
 
-<span class="badge bg-success">Low</span>
+<span class="badge priority-low">
+
+Low
+
+</span>
 
 {% endif %}
 
 </div>
 
 </div>
-<div class="mb-3">
 
-    <span class="badge bg-primary">
+<div class="mt-3">
 
-        <i class="bi bi-folder-fill"></i>
+<i class="bi bi-folder-fill text-primary"></i>
 
-        {{ task["category"] }}
+<strong>
 
-    </span>
+{{ task.category }}
 
-    {% if task["due_date"] %}
-
-    <span class="badge bg-info text-dark">
-
-        <i class="bi bi-calendar-event"></i>
-
-        {{ task["due_date"] }}
-
-    </span>
-
-    {% else %}
-
-    <span class="badge bg-secondary">
-
-        No Due Date
-
-    </span>
-
-    {% endif %}
+</strong>
 
 </div>
 
-<div class="d-flex justify-content-between align-items-center">
+<div class="mt-2">
 
-    <small class="text-muted">
+<i class="bi bi-calendar-event"></i>
 
-        Created {{ task["created_at"] }}
+Due :
 
-    </small>
+{{ task.due_date if task.due_date else "Not Assigned" }}
 
-    <div class="d-flex gap-2">
+</div>
 
-        {% if task["status"] == 0 %}
+<div class="mt-3">
 
-        <a
-            href="/complete/{{ task['id'] }}"
-            class="btn btn-success btn-sm">
+{% if task.status=="Completed" %}
 
-            <i class="bi bi-check-lg"></i>
+<span class="badge status-completed">
 
-            Complete
+<i class="bi bi-check-circle-fill"></i>
 
-        </a>
+Completed
 
-        {% else %}
+</span>
 
-        <span class="badge bg-success">
+{% else %}
 
-            Completed
+<span class="badge status-pending">
 
-        </span>
+<i class="bi bi-clock-fill"></i>
 
-        {% endif %}
+Pending
 
-        <a
-            href="/edit/{{ task['id'] }}"
-            class="btn btn-warning btn-sm">
+</span>
 
-            <i class="bi bi-pencil-square"></i>
+{% endif %}
 
-        </a>
+</div>
 
-        <a
-            href="/delete/{{ task['id'] }}"
-            class="btn btn-danger btn-sm">
+<hr>
 
-            <i class="bi bi-trash"></i>
+<div class="task-footer">
 
-        </a>
+<div>
 
-    </div>
+<a
+
+href="/complete/{{task.id}}"
+
+class="btn btn-success btn-sm">
+
+<i class="bi bi-check-lg"></i>
+
+Complete
+
+</a>
+
+<a
+
+href="/edit/{{task.id}}"
+
+class="btn btn-warning btn-sm">
+
+<i class="bi bi-pencil-fill"></i>
+
+Edit
+
+</a>
+
+<a
+
+href="/delete/{{task.id}}"
+
+class="btn btn-danger btn-sm"
+
+onclick="return confirm('Delete this task?')">
+
+<i class="bi bi-trash-fill"></i>
+
+Delete
+
+</a>
+
+</div>
+
+<div>
+
+<small class="text-muted">
+
+Task #{{task.id}}
+
+</small>
 
 </div>
 
@@ -462,138 +643,265 @@ Completed
 
 {% endfor %}
 
-</div>
-
 {% else %}
 
-<div class="card shadow border-0">
+<div class="col-12">
 
-    <div class="card-body text-center py-5">
+<div class="card">
 
-        <i class="bi bi-inbox display-1 text-secondary"></i>
+<div class="card-body text-center py-5">
 
-        <h3 class="mt-3">
+<i
 
-            You're All Caught Up!
+class="bi bi-inbox"
 
-        </h3>
+style="font-size:80px;color:#CBD5E1;">
 
-        <p class="text-muted">
+</i>
 
-            No matching tasks found.
+<h3 class="mt-4">
 
-        </p>
+No Tasks Found
 
-        <a
-            href="/"
-            class="btn btn-primary mt-2">
+</h3>
 
-            Refresh
+<p class="text-muted">
 
-        </a>
+Create your first task to start managing your work.
 
-    </div>
+</p>
+
+<a
+
+href="#addTask"
+
+class="btn btn-primary btn-lg">
+
+<i class="bi bi-plus-circle-fill"></i>
+
+Create First Task
+
+</a>
+
+</div>
+
+</div>
 
 </div>
 
 {% endif %}
 
-<hr class="my-5">
+</div>
 
-<!-- ================= Progress ================= -->
+<!-- ==========================
+ANALYTICS
+========================== -->
 
-<div class="card shadow border-0">
+<div class="row mt-5">
 
-    <div class="card-body">
+<div class="col-lg-6">
 
-        <h4 class="mb-4">
+<div class="chart-card">
 
-            <i class="bi bi-bar-chart-fill"></i>
+<h4 class="fw-bold mb-4">
 
-            Task Analytics
+Task Analytics
 
-        </h4>
+</h4>
 
-        {% set completed_percent=((completed/total)*100)|round(0) if total>0 else 0 %}
-        {% set pending_percent=((pending/total)*100)|round(0) if total>0 else 0 %}
+<canvas id="pieChart"></canvas>
 
-        <h6>
+</div>
 
-            Completed ({{ completed }}/{{ total }})
+</div>
 
-        </h6>
+<div class="col-lg-6">
 
-        <div class="progress mb-4" style="height:25px;">
+<div class="chart-card">
 
-            <div
-                class="progress-bar bg-success progress-bar-striped progress-bar-animated"
-                style="width: {{ completed_percent }}%;">
+<h4 class="fw-bold mb-4">
 
-                {{ completed_percent }}%
+Quick Actions
 
-            </div>
+</h4>
 
-        </div>
+<div class="quick-actions">
 
-        <h6>
+<a
 
-            Pending ({{ pending }}/{{ total }})
+href="#addTask"
 
-        </h6>
+class="btn btn-primary">
 
-        <div class="progress mb-4" style="height:25px;">
+<i class="bi bi-plus-circle-fill"></i>
 
-            <div
-                class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
-                style="width: {{ pending_percent }}%;">
+Add Task
 
-                {{ pending_percent }}%
+</a>
 
-            </div>
+<a
 
-        </div>
+href="/profile"
 
-        <div class="row text-center mt-5">
+class="btn btn-outline-primary">
 
-            <div class="col-md-4">
+<i class="bi bi-person-circle"></i>
 
-                <h2 class="text-primary fw-bold">
+Profile
 
-                    {{ total }}
+</a>
 
-                </h2>
+<button
 
-                <p>Total Tasks</p>
+class="btn btn-success"
 
-            </div>
+onclick="window.print()">
 
-            <div class="col-md-4">
+<i class="bi bi-printer-fill"></i>
 
-                <h2 class="text-success fw-bold">
+Print
 
-                    {{ completed }}
+</button>
 
-                </h2>
+<button
 
-                <p>Completed</p>
+class="btn btn-warning"
 
-            </div>
+onclick="toggleDark()">
 
-            <div class="col-md-4">
+<i class="bi bi-moon-stars-fill"></i>
 
-                <h2 class="text-danger fw-bold">
+Dark Mode
 
-                    {{ pending }}
+</button>
 
-                </h2>
+</div>
 
-                <p>Pending</p>
+<hr class="my-4">
 
-            </div>
+<h5>
 
-        </div>
+Today's Summary
 
-    </div>
+</h5>
+
+<ul class="list-group list-group-flush">
+
+<li class="list-group-item d-flex justify-content-between">
+
+Total Tasks
+
+<span class="fw-bold">
+
+{{stats.total}}
+
+</span>
+
+</li>
+
+<li class="list-group-item d-flex justify-content-between">
+
+Completed
+
+<span class="text-success fw-bold">
+
+{{stats.completed}}
+
+</span>
+
+</li>
+
+<li class="list-group-item d-flex justify-content-between">
+
+Pending
+
+<span class="text-warning fw-bold">
+
+{{stats.pending}}
+
+</span>
+
+</li>
+
+<li class="list-group-item d-flex justify-content-between">
+
+High Priority
+
+<span class="text-danger fw-bold">
+
+{{stats.high}}
+
+</span>
+
+</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const ctx=document.getElementById("pieChart");
+
+if(ctx){
+
+new Chart(ctx,{
+
+type:'doughnut',
+
+data:{
+
+labels:['Completed','Pending'],
+
+datasets:[{
+
+data:[
+
+{{stats.completed}},
+
+{{stats.pending}}
+
+],
+
+backgroundColor:[
+
+'#22C55E',
+
+'#2563EB'
+
+],
+
+borderWidth:0
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+
+legend:{
+
+position:'bottom'
+
+}
+
+}
+
+}
+
+});
+
+}
+
+</script>
 
 </div>
 
